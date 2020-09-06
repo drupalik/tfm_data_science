@@ -2,54 +2,7 @@ from flask import Flask, jsonify, request, Response
 from flask_pymongo import PyMongo
 from flask_cors import CORS
 
-
-
-# configuration
-DEBUG = True
-
-# instantiate the app
-app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/temperatura"
-mongo = PyMongo(app)
-print(mongo)
-# app.config.from_object(__name__)
-
-"""
-connection = Connection()
-db = connection['temperatura']
-units = db['temperaturas']
-"""
-
-# enable CORS
-CORS(app, resources={r'/*': {'origins': '*'}})
-
-
-# sanity check route
-@app.route("/temperaturas", methods=['GET'])
-def home_page():
-    temperaturas = mongo.db.temperaturas.find({"online": True})
-    response = json_util.dump(temperaturas)
-    return Response(response, mimetype='application/json')
-
-
-@app.route('/ping', methods=['GET'])
-def ping_pong():
-    return jsonify('pong!')
-
-
-@app.route('/mediciones', methods=['GET'])
-def all_mediciones():
-    return jsonify({
-        'status': 'success',
-        'medicion': MEDICION
-    })
-
-
-if __name__ == '__main__':
-    app.run()
-
-
-MEDICION = [
+MEDICIONES = [
     {
         "timestamp": "12/15/2014 01:40:00 AM",
         "mac": "0013a20040b4b755",
@@ -117,3 +70,56 @@ MEDICION = [
         "Position": ""
     }
 ]
+
+# configuration
+DEBUG = True
+
+# instantiate the app
+app = Flask(__name__)
+app.config['MONGO_DBNAME'] = 'temperatura'
+app.config["MONGO_URI"] = "mongodb://localhost:27017/temperatura"
+mongo = PyMongo(app)
+print(mongo)
+# app.config.from_object(__name__)
+
+"""
+connection = Connection()
+db = connection['temperatura']
+units = db['temperaturas']
+"""
+
+# enable CORS
+CORS(app, resources={r'/*': {'origins': '*'}})
+
+
+# sanity check route
+# @app.route("/temperaturas", methods=['GET'])
+# def home_page():
+#     temperaturas = mongo.db.temperaturas.find({"online": True})
+#     response = json_util.dump(temperaturas)
+#     return Response(response, mimetype='application/json')
+
+@app.route('/temperaturas', methods=['GET'])
+def get_all_stars():
+    temperatura = mongo.db.temperaturas
+    output = []
+    for s in temperatura.find():
+        output.append({'location': s['location']})
+    return jsonify({'result': output[0:10]})
+
+
+@app.route('/ping', methods=['GET'])
+def ping_pong():
+    return jsonify('pong!')
+
+
+@app.route('/mediciones', methods=['GET'])
+def all_mediciones():
+    return jsonify({
+        'status': 'success',
+        'medicion': MEDICIONES
+    })
+
+
+if __name__ == '__main__':
+    app.run()
